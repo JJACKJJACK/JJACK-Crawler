@@ -74,11 +74,11 @@ def insert_article (url, i):
                     reporter = None
                 # print(reporter)
 
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'조선일보', image_url, date)
-                # print(sql)
-
-                cur.execute(sql)
-                cur.connection.commit()
+                # sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'조선일보', image_url, date)
+                # # print(sql)
+                #
+                # cur.execute(sql)
+                # cur.connection.commit()
 
         except Exception as err:
             print('Main Error!' + str(err))
@@ -105,39 +105,23 @@ def get_date_by_new_link (url):
 
             # 공백 등 불필요한 문자 제거.
             date = date.strip().replace('\r\n', '')
-
-            # 날짜 패턴을 주고 그 패턴에 맞는 문자열을 가져옴.
-            # 패턴 선언.
-            pattern = re.compile('[0-9]{4}.[0-9]{2}.[0-9]{2}\s[0-9]{2}.[0-9]{2}')
-            # date 변수에 입력된 문자열 중 패턴에 맞는 문자열이 있는지 확인.
-            searcher = pattern.search(date)
-            date = searcher.group()
+            # 필요한 부분만 가져옴.
+            date = date[5:21]
 
             return date
 
         except Exception as err:
-            print('Reporter Error! ' + str(err))
+            print('Date Error! ' + str(err))
             return ""
 
     return date
 
 
-def interval_func ():
-    # 조선일보 기사 페이지 url
-    # 마지막 쿼리에서 pn의 값이 페이지 번호가 된다. Ex) pn=5  ->  5페이지.
-    chosun_url = 'http://news.chosun.com/svc/list_in/list.html?source=1&pn='
+# 조선일보 기사 페이지 url
+# 마지막 쿼리에서 pn의 값이 페이지 번호가 된다. Ex) pn=5  ->  5페이지.
+chosun_url = 'http://news.chosun.com/svc/list_in/list.html?source=1&pn='
 
-    # 톄스트를 위해 최신 기사 1페이지부터 6페이지까지 수집.
-    for i in range(1, 2):
-        insert_article(chosun_url, i)
+# 톄스트를 위해 최신 기사 1페이지부터 6페이지까지 수집.
+for i in range(1, 3):
+    insert_article(chosun_url, i)
 
-# 주기적으로 코드를 실행시키기 위한 Scheduler 객체를 얻어옴.
-scheduler = BackgroundScheduler()
-# scheduler에 작업을 추가함. 주기는 3시간이다.
-scheduler.add_job(interval_func, 'interval', hours=10)
-# scheduler 시작.
-scheduler.start()
-
-# 프로세스가 종료되면 scheduler도 소멸되므로 프로세스가 계속 동작할 수 있도록 하는 무한루프.
-while (True):
-    time.sleep(10000000)

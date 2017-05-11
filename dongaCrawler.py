@@ -114,23 +114,11 @@ def get_reporter_by_new_link (url):
     return reporter
 
 
-def interval_func ():
-    # 동아일보 기사 페이지 url
-    # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
-    # p의 값을 쉽게 넣기 위해 문자열 '!@#' 을 넣어둔 상태.
-    donga_url = 'http://news.donga.com/List?p=!@#&prod=news&ymd=&m=NP'
+# 동아일보 기사 페이지 url
+# p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
+# p의 값을 쉽게 넣기 위해 문자열 '!@#' 을 넣어둔 상태.
+donga_url = 'http://news.donga.com/List?p=!@#&prod=news&ymd=&m=NP'
 
-    # 동아일보 최신 기사 페이지의 번호는 1, 21, 41, 61, ... 과 같이 값이 한번에 20씩 증가한다.
-    for i in range(1, 9999999, 20):
-        insert_article(donga_url, i)
-
-# 주기적으로 코드를 실행시키기 위한 Scheduler 객체를 얻어옴.
-scheduler = BackgroundScheduler()
-# scheduler에 작업을 추가함. 주기는 3시간이다.
-scheduler.add_job(interval_func, 'interval', hours=3)
-# scheduler 시작.
-scheduler.start()
-
-# 프로세스가 종료되면 scheduler도 소멸되므로 프로세스가 계속 동작할 수 있도록 하는 무한루프.
-while (True):
-    time.sleep(10000000)
+# 동아일보 최신 기사 페이지의 번호는 1, 21, 41, 61, ... 과 같이 값이 한번에 20씩 증가한다.
+for i in range(1, 9999999, 20):
+    insert_article(donga_url, i)

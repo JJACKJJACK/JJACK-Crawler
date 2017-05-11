@@ -97,23 +97,10 @@ def insert_article (url, i):
             # return
 
 
-def interval_func ():
-    # 경향신문 기사 페이지 url
-    # 쿼리에서 page의 값이 페이지 번호가 된다. Ex) page=5  ->  5페이지.
-    gyeonghyang_url = 'http://news.khan.co.kr/kh_recent/index.html?&page='
+# 경향신문 기사 페이지 url
+# 쿼리에서 page의 값이 페이지 번호가 된다. Ex) page=5  ->  5페이지.
+gyeonghyang_url = 'http://news.khan.co.kr/kh_recent/index.html?&page='
 
-    # 최신 기사 1페이지부터 n페이지까지 수집.
-    for i in range(1, 999999):
-        insert_article(gyeonghyang_url, i)
-
-
-# 주기적으로 코드를 실행시키기 위한 Scheduler 객체를 얻어옴.
-scheduler = BackgroundScheduler()
-# scheduler에 작업을 추가함. 주기는 3시간이다.
-scheduler.add_job(interval_func, 'interval', hours=3)
-# scheduler 시작.
-scheduler.start()
-
-# 프로세스가 종료되면 scheduler도 소멸되므로 프로세스가 계속 동작할 수 있도록 하는 무한루프.
-while (True):
-    time.sleep(10000000)
+# 최신 기사 1페이지부터 n페이지까지 수집.
+for i in range(1, 999999):
+    insert_article(gyeonghyang_url, i)

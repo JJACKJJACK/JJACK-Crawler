@@ -464,18 +464,13 @@ def get_chosun_date_by_new_link(url):
 
             # 공백 등 불필요한 문자 제거.
             date = date.strip().replace('\r\n', '')
-
-            # 날짜 패턴을 주고 그 패턴에 맞는 문자열을 가져옴.
-            # 패턴 선언.
-            pattern = re.compile('[0-9]{4}.[0-9]{2}.[0-9]{2}\s[0-9]{2}.[0-9]{2}')
-            # date 변수에 입력된 문자열 중 패턴에 맞는 문자열이 있는지 확인.
-            searcher = pattern.search(date)
-            date = searcher.group()
+            # 필요한 부분만 가져옴.
+            date = date[5:21]
 
             return date
 
         except Exception as err:
-            print('Reporter Error! ' + str(err))
+            print('Date Error! ' + str(err))
             return ""
 
     return date
