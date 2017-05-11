@@ -3,8 +3,6 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
-import time
-from apscheduler.schedulers.background import BackgroundScheduler
 
 '''
  # AUTH: Moon 
@@ -20,81 +18,82 @@ def insert_article (url, i):
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
-        try:
-            # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
-            # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
-            conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
-            cur = conn.cursor()
+        # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
+        # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
+        conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
+        conn.autocommit(True)
+        cur = conn.cursor()
 
-            # 경향신문 기사 리스트 특성 상 페이지 당 기사를 10개씩만 가져와야 하는데 그것을 위한 변수.
-            count = 0
+        # 경향신문 기사 리스트 특성 상 페이지 당 기사를 10개씩만 가져와야 하는데 그것을 위한 변수.
+        count = 0
 
-            # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
-            soup = BeautifulSoup(source, 'lxml')
+        # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
+        soup = BeautifulSoup(source, 'lxml')
 
-            for link in soup.find('div', attrs={'class': 'news_list'}).findAll('li'):
+        for link in soup.find('div', attrs={'class': 'news_list'}).findAll('li'):
 
-                if count == 10:
-                    break
+            if count == 10:
+                break
 
-                # 제목, 원본 url 덤프.
-                title_and_url_dump = link.find('strong', attrs={'class': 'hd_title'})
-                # 제목.
-                title = title_and_url_dump.find('a').text
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                title = title.replace('\'', '\\\'').replace('\"', '\\\"')
-                # print(title)
+            # 제목, 원본 url 덤프.
+            title_and_url_dump = link.find('strong', attrs={'class': 'hd_title'})
+            # 제목.
+            title = title_and_url_dump.find('a').text
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            title = title.replace('\'', '\\\'').replace('\"', '\\\"')
+            # 문장 앞 뒤 공백 제거
+            title = title.strip()
+            # print(title)
 
-                # 기사 url
-                article_url = title_and_url_dump.find('a').get('href')
-                # print(article_url)
+            # 기사 url
+            article_url = title_and_url_dump.find('a').get('href')
+            # print(article_url)
 
-                # 이미지 url
-                image_dump = link.find('span', attrs={'class': 'thumb'})
-                if image_dump is not None:
-                    image_url = image_dump.find('img').get('src')
-                else:
-                    image_url = None
-                # print(image_url)
+            # 이미지 url
+            image_dump = link.find('span', attrs={'class': 'thumb'})
+            if image_dump is not None:
+                image_url = image_dump.find('img').get('src')
+            else:
+                image_url = None
+            # print(image_url)
 
-                # 내용.
-                desc_dump = link.find('span', attrs={'class': 'lead'})
-                desc = desc_dump.text.strip()
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
-                # 개행 문자 제거.
-                desc = desc.replace('\r\n', '')
-                # print(desc)
+            # 내용.
+            desc_dump = link.find('span', attrs={'class': 'lead'})
+            desc = desc_dump.text.strip()
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
+            # 개행 문자 제거.
+            desc = desc.replace('\r\n', '')
+            # print(desc)
 
-                # 날짜, 기자 덤프.
-                date_and_author_dump = link.find('span', attrs={'class': 'byline'})
-                # 날짜.
-                date = date_and_author_dump.find('em', attrs={'class': 'letter'}).text
-                # 불필요한 공백 제거.
-                date = date.replace('. ', '.')
-                # print(date)
+            # 날짜, 기자 덤프.
+            date_and_author_dump = link.find('span', attrs={'class': 'byline'})
+            # 날짜.
+            date = date_and_author_dump.find('em', attrs={'class': 'letter'}).text
+            # 불필요한 공백 제거.
+            date = date.replace('. ', '.')
+            # print(date)
 
-                # 기자.
-                # 경향신문 사이트는 기자 이름이 있는 태그의 클래스명이 없기 때문에 None
-                reporter = date_and_author_dump.find('em', attrs={'class': None})
-                if reporter is not None:
-                    reporter = reporter.text.strip()
-                else:
-                    reporter = None
-                # print(reporter)
-
+            # 기자.
+            # 경향신문 사이트는 기자 이름이 있는 태그의 클래스명이 없기 때문에 None
+            reporter = date_and_author_dump.find('em', attrs={'class': None})
+            if reporter is not None:
+                reporter = reporter.text.strip()
+            else:
+                reporter = None
+            # print(reporter)
+            try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'경향신문', image_url, date)
                 # print(sql)
-
                 cur.execute(sql)
-                cur.connection.commit()
 
-                # 기사를 가져왔으니 변수 + 1
-                count = count + 1
+            except Exception as err:
+                print('Main Error! ' + str(err))
+                # return
 
-        except Exception as err:
-            print('Main Error! ' + str(err))
-            # return
+            # 기사를 가져왔으니 변수 + 1
+            count = count + 1
+
 
 
 # 경향신문 기사 페이지 url
@@ -102,5 +101,5 @@ def insert_article (url, i):
 gyeonghyang_url = 'http://news.khan.co.kr/kh_recent/index.html?&page='
 
 # 최신 기사 1페이지부터 n페이지까지 수집.
-for i in range(1, 999999):
+for i in range(1, 3):
     insert_article(gyeonghyang_url, i)

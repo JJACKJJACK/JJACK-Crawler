@@ -3,9 +3,6 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
-import re
-import time
-from apscheduler.schedulers.background import BackgroundScheduler
 
 '''
  # AUTH: Moon 
@@ -21,100 +18,69 @@ def insert_article (url, i):
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
-        try:
-            # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
-            # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
-            conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
-            cur = conn.cursor()
+        conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
+        # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
+        # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
+        conn.autocommit(True)
+        cur = conn.cursor()
 
-            # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
-            soup = BeautifulSoup(source, 'lxml')
+        # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
+        soup = BeautifulSoup(source, 'lxml')
 
-            for link in soup.findAll('dl', attrs={'class': 'list_item'}):
+        for link in soup.findAll('dl', attrs={'class': 'list_item'}):
 
-                # 제목, 기사 url 덤프.
-                title_and_url_dump = link.find('dt')
-                # 제목.
-                title = title_and_url_dump.find('a').text
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                title = title.replace('\'', '\\\'').replace('\"', '\\\"')
-                #print(title)
+            # 제목, 기사 url 덤프.
+            title_and_url_dump = link.find('dt')
+            # 제목.
+            title = title_and_url_dump.find('a').text
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            title = title.replace('\'', '\\\'').replace('\"', '\\\"')
+            # 문장 앞 뒤 공백 제거
+            title = title.strip()
+            # print(title)
 
-                # 기사 url
-                article_url = title_and_url_dump.find('a').get('href')
-                # print(article_url)
+            # 기사 url
+            article_url = title_and_url_dump.find('a').get('href')
+            # print(article_url)
 
-                # 이미지 url
-                image_dump = link.find('dd', attrs={'class': 'thumb'})
-                if image_dump is not None:
-                    image_url = image_dump.find('img').get('src')
-                else:
-                    image_url = None
+            # 이미지 url
+            image_dump = link.find('dd', attrs={'class': 'thumb'})
+            if image_dump is not None:
+                image_url = image_dump.find('img').get('src')
+            else:
+                image_url = None
 
-                # print(image_url)
+            # print(image_url)
 
-                # 내용.
-                desc_dump = link.find('dd', attrs={'class': 'desc'})
-                desc = desc_dump.find('a').text.strip()
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
-                # print(desc)
+            # 내용.
+            desc_dump = link.find('dd', attrs={'class': 'desc'})
+            desc = desc_dump.find('a').text.strip()
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
+            # print(desc)
 
-                # 날짜.
-                date = get_date_by_new_link(article_url)
-                # print(date)
+            # 날짜, 기자 덤프
+            date_and_reporter_dump = link.find('dd', attrs={'class': 'date_author'})
+            reporter = date_and_reporter_dump.find('span', attrs={'class': 'author'})
+            if reporter is not None:
+                reporter = reporter.text.strip()
+            else:
+                reporter = None
+            # print(reporter)
 
+            # 날짜.
+            date = date_and_reporter_dump.find('span', attrs={'class': 'date'}).text
+            # 요일 삭제.
+            date = date[0:10]
+            # print(date)
+            try:
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'조선일보', image_url, date)
+                # print(sql)
+                cur.execute(sql)
 
-                # 기자.
-                author_dump = link.find('dd', attrs={'class': 'date_author'})
-                reporter = author_dump.find('span', attrs={'class': 'author'})
-                if reporter is not None:
-                    reporter = reporter.text.strip()
-                else:
-                    reporter = None
-                # print(reporter)
-
-                # sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'조선일보', image_url, date)
-                # # print(sql)
-                #
-                # cur.execute(sql)
-                # cur.connection.commit()
-
-        except Exception as err:
-            print('Main Error!' + str(err))
-            # return
-
-'''
- # AUTH: Moon 
- # DATE: 17.05.09
- # DESC: 입력받은 url을 이용하여 기사 원본을 열어 기사의 작성 시간을 받아옴.
- # PARAM: 1. url: 기사 원본 url
- # RETURN: 기사 작성 시간.
-'''
-def get_date_by_new_link (url):
-    source = urllib.request.urlopen(url)
-
-    date = ""
-
-    if source is not None:
-        try:
-            soup = BeautifulSoup(source, 'lxml')
-
-            date_dump = soup.find('div', attrs={'class': 'date_ctrl_2011'})
-            date = date_dump.find('p').text
-
-            # 공백 등 불필요한 문자 제거.
-            date = date.strip().replace('\r\n', '')
-            # 필요한 부분만 가져옴.
-            date = date[5:21]
-
-            return date
-
-        except Exception as err:
-            print('Date Error! ' + str(err))
-            return ""
-
-    return date
+            except Exception as err:
+                print('Main Error!' + str(err))
+                # return
 
 
 # 조선일보 기사 페이지 url

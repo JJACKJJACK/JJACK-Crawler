@@ -3,8 +3,6 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
-import time
-from apscheduler.schedulers.background import BackgroundScheduler
 
 '''
  # AUTH: Moon 
@@ -24,64 +22,66 @@ def insert_article (url, i):
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
-        try:
-            # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
-            # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
-            conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
-            cur = conn.cursor()
+        # System arguments로 mysql connection을 구하기 위한 값들을 추가한다.
+        # 순서대로 호스트(localhost), mysql user(admin 또는 root), mysql password(rkawk123 또는 null), mysql database(jjack)
+        conn = pymysql.connect(host=sys.argv[1], user=sys.argv[2], password=sys.argv[3], database=sys.argv[4], charset='utf8')
+        conn.autocommit(True)
+        cur = conn.cursor()
 
-            # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
-            soup = BeautifulSoup(source, 'lxml')
+        # html 소스코드를 얻기 위해 HTTP 응답 객체를 이용.
+        soup = BeautifulSoup(source, 'lxml')
 
-            for link in soup.findAll('div', attrs={'class': 'articleList'}):
+        for link in soup.findAll('div', attrs={'class': 'articleList'}):
 
-                # 기사 정보 덤프.
-                article_info_dump = link.find('div', attrs={'class': 'rightList'}).find('a')
-                # 제목.
-                title = article_info_dump.find('span', attrs={'class': 'tit'}).text
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                title = title.replace('\'', '\\\'').replace('\"', '\\\"')
-                # print(title)
+            # 기사 정보 덤프.
+            article_info_dump = link.find('div', attrs={'class': 'rightList'}).find('a')
+            # 제목.
+            title = article_info_dump.find('span', attrs={'class': 'tit'}).text
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            title = title.replace('\'', '\\\'').replace('\"', '\\\"')
+            # 문장 앞 뒤 공백 제거
+            title = title.strip()
+            # print(title)
 
-                # 기사 url
-                article_url = article_info_dump.get('href')
-                # print(article_url)
+            # 기사 url
+            article_url = article_info_dump.get('href')
+            # print(article_url)
 
-                # 내용.
-                desc_dump = article_info_dump.find('span', attrs={'class': 'txt'})
-                desc = desc_dump.text.strip()
-                # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
-                desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
-                # print(desc)
+            # 내용.
+            desc_dump = article_info_dump.find('span', attrs={'class': 'txt'})
+            desc = desc_dump.text.strip()
+            # sql 쿼리가 정상적으로 실행될 수 있도록 ' 문자와 " 문자를 이스케이프 시킨다.
+            desc = desc.replace('\'', '\\\'').replace('\"', '\\\"')
+            # print(desc)
 
-                # 날짜.
-                date = article_info_dump.find('span', attrs={'class': 'date'}).text
-                # print(date)
+            # 날짜.
+            date = article_info_dump.find('span', attrs={'class': 'date'}).text
+            # print(date)
 
 
-                # 이미지 url
-                image_dump = link.find('div', attrs={'class': 'thumb'})
-                if image_dump is not None:
-                    image_url = image_dump.find('img').get('src')
-                else:
-                    image_url = None
-                # print(image_url)
+            # 이미지 url
+            image_dump = link.find('div', attrs={'class': 'thumb'})
+            if image_dump is not None:
+                image_url = image_dump.find('img').get('src')
+            else:
+                image_url = None
+            # print(image_url)
 
-                # 기자.
-                # 동아일보의 경우 최신 기사 리스트에 기자의 이름을 따로 보여주지 않고 있기 때문에
-                # 기사의 원본 url으로 기사 원본을 열어 기자의 이름을 가져온다.
-                reporter = get_reporter_by_new_link(article_url)
-                # print(reporter)
-
+            # 기자.
+            # 동아일보의 경우 최신 기사 리스트에 기자의 이름을 따로 보여주지 않고 있기 때문에
+            # 기사의 원본 url으로 기사 원본을 열어 기자의 이름을 가져온다.
+            # reporter = get_reporter_by_new_link(article_url)
+            reporter = ''
+            # print(reporter)
+            try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'동아일보', image_url, date)
                 # print(sql)
-
                 cur.execute(sql)
-                cur.connection.commit()
 
-        except Exception as err:
-            print('Main Error! ' + str(err))
-            # return
+            except Exception as err:
+                print('Main Error! ' + str(err))
+                # return
+
 
 
 '''
@@ -120,5 +120,5 @@ def get_reporter_by_new_link (url):
 donga_url = 'http://news.donga.com/List?p=!@#&prod=news&ymd=&m=NP'
 
 # 동아일보 최신 기사 페이지의 번호는 1, 21, 41, 61, ... 과 같이 값이 한번에 20씩 증가한다.
-for i in range(1, 9999999, 20):
+for i in range(1, 22, 20):
     insert_article(donga_url, i)
