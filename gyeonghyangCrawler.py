@@ -13,8 +13,21 @@ import sys
 '''
 def insert_article (url, i):
     # print(url + str(i))
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url + str(i))
+
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url + str(i), headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
+
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -94,7 +107,8 @@ def insert_article (url, i):
             # 기사를 가져왔으니 변수 + 1
             count = count + 1
 
-
+# Exception Log를 기록할 파일 열기.
+f = open('./log/gyeonghyangLog', 'a')
 
 # 경향신문 기사 페이지 url
 # 쿼리에서 page의 값이 페이지 번호가 된다. Ex) page=5  ->  5페이지.
@@ -102,4 +116,12 @@ gyeonghyang_url = 'http://news.khan.co.kr/kh_recent/index.html?&page='
 
 # 최신 기사 1페이지부터 n페이지까지 수집.
 for i in range(1, 3):
-    insert_article(gyeonghyang_url, i)
+    try:
+        insert_article(gyeonghyang_url, i)
+    except Exception as err:
+        # 만약 Exception이 발생할 경우 파일에 쓰기.
+        err_message = str(err)
+        f.write(err_message)
+
+# 파일 닫기.
+f.close()

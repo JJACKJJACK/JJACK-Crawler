@@ -13,8 +13,20 @@ import sys
 '''
 def insert_article (url, i):
     # print(url + str(i))
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url + str(i))
+
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url + str(i), headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -83,11 +95,22 @@ def insert_article (url, i):
                 # return
 
 
+# Exception Log를 기록할 파일 열기.
+f = open('./log/hanLog', 'a')
+
 # 조선일보 기사 페이지 url
 # 마지막 쿼리에서 pn의 값이 페이지 번호가 된다. Ex) pn=5  ->  5페이지.
 chosun_url = 'http://news.chosun.com/svc/list_in/list.html?source=1&pn='
 
 # 톄스트를 위해 최신 기사 1페이지부터 6페이지까지 수집.
-for i in range(1, 3):
-    insert_article(chosun_url, i)
+for i in range(1, 99999999):
+    try:
+        insert_article(chosun_url, i)
+    except Exception as err:
+        # 만약 Exception이 발생할 경우 파일에 쓰기.
+        err_message = str(err)
+        f.write(err_message)
+
+# 파일 닫기.
+f.close()
 

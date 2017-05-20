@@ -17,8 +17,19 @@ def insert_article (url, i):
     url = url.replace('!@#', str(i))
     # print(url)
 
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url)
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url, headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -114,6 +125,9 @@ def get_reporter_by_new_link (url):
     return reporter
 
 
+# Exception Log를 기록할 파일 열기.
+f = open('./log/hanLog', 'a')
+
 # 동아일보 기사 페이지 url
 # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
 # p의 값을 쉽게 넣기 위해 문자열 '!@#' 을 넣어둔 상태.
@@ -121,4 +135,12 @@ donga_url = 'http://news.donga.com/List?p=!@#&prod=news&ymd=&m=NP'
 
 # 동아일보 최신 기사 페이지의 번호는 1, 21, 41, 61, ... 과 같이 값이 한번에 20씩 증가한다.
 for i in range(1, 22, 20):
-    insert_article(donga_url, i)
+    try:
+        insert_article(donga_url, i)
+    except Exception as err:
+        # 만약 Exception이 발생할 경우 파일에 쓰기.
+        err_message = str(err)
+        f.write(err_message)
+
+# 파일 닫기.
+f.close()

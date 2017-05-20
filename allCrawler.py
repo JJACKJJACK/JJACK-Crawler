@@ -16,8 +16,20 @@ from apscheduler.schedulers.background import BackgroundScheduler
 '''
 def insert_article_chosun (url, i):
     # print(url + str(i))
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url + str(i))
+
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url + str(i), headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -99,8 +111,19 @@ def insert_article_donga (url, i):
     url = url.replace('!@#', str(i))
     # print(url)
 
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url)
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url, headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -208,8 +231,19 @@ def insert_article_han (url, i):
     url = url.replace('!@#', str(i))
     # print(url)
 
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url)
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url, headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -330,8 +364,20 @@ def get_han_reporter_by_new_link (url):
 '''
 def insert_article_gyeonghyang (url, i):
     # print(url + str(i))
-    # 최신 기사 페이지와 페이지 번호를 이용하여 HTTP 응답 객체를 얻어옴.
-    source = urllib.request.urlopen(url + str(i))
+
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
+                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url + str(i), headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -455,7 +501,7 @@ def interval_chosun_func():
 # BackgroundScheduler 객체 생성
 scheduler = BackgroundScheduler()
 # 주기적으로 실행시킬 함수들 추가
-scheduler.add_job(interval_chosun_func, 'interval', seconds=10)
+scheduler.add_job(interval_chosun_func, 'interval', hours=3)
 scheduler.add_job(interval_han_func, 'interval', seconds=10)
 scheduler.add_job(interval_gyeonghyang_func, 'interval', seconds=10)
 scheduler.add_job(interval_donga_func, 'interval', seconds=10)
