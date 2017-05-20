@@ -96,7 +96,7 @@ def insert_article (url, i):
 
 
 # Exception Log를 기록할 파일 열기.
-f = open('./log/hanLog', 'a')
+f = open('./log/chosunLog', 'a')
 
 # 조선일보 기사 페이지 url
 # 마지막 쿼리에서 pn의 값이 페이지 번호가 된다. Ex) pn=5  ->  5페이지.

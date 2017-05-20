@@ -126,7 +126,7 @@ def get_reporter_by_new_link (url):
 
 
 # Exception Log를 기록할 파일 열기.
-f = open('./log/hanLog', 'a')
+f = open('./log/dongaLog', 'a')
 
 # 동아일보 기사 페이지 url
 # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
