@@ -19,8 +19,8 @@ def insert_article (url, i):
 
     # 헤더 정의
     hdr = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
-                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
+                      ' Gecko/20100722 Firefox/3.6.8 IPMS/A640400A-14D460801A1-000000426571',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
         'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
@@ -90,9 +90,8 @@ def insert_article (url, i):
                 cur.execute(sql)
 
             except Exception as err:
-                print('Main Error! ' + str(err))
+                print('[Donga]Main Error! ' + str(err))
                 # return
-
 
 
 '''
@@ -119,14 +118,14 @@ def get_reporter_by_new_link (url):
             return reporter
 
         except Exception as err:
-            print('Reporter Error! ' + str(err))
+            print('Donga]Reporter Error! ' + str(err))
             return ""
 
     return reporter
 
 
 # Exception Log를 기록할 파일 열기.
-f = open('./log/dongaLog', 'a')
+# f = open('./log/dongaLog', 'a')
 
 # 동아일보 기사 페이지 url
 # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
@@ -140,7 +139,7 @@ for i in range(1, 22, 20):
     except Exception as err:
         # 만약 Exception이 발생할 경우 파일에 쓰기.
         err_message = str(err)
-        f.write(err_message)
+        # f.write(err_message)
 
 # 파일 닫기.
-f.close()
+# f.close()

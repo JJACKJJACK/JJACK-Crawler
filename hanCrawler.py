@@ -108,7 +108,7 @@ def insert_article (url, i):
                 cur.execute(sql)
 
             except Exception as err:
-                print('Main Error! ' + str(err.args[1]))
+                print('[Han]Main Error! ' + str(err.args[1]))
                 # return
 
 
@@ -136,7 +136,7 @@ def get_reporter_by_new_link (url):
             return reporter
 
         except Exception as err:
-            print('Reporter Error! ' + str(err))
+            print('[Han]Reporter Error! ' + str(err))
             return ""
 
     return reporter

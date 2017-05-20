@@ -101,7 +101,7 @@ def insert_article (url, i):
                 cur.execute(sql)
 
             except Exception as err:
-                print('Main Error! ' + str(err))
+                print('[GH] Main Error! ' + str(err))
                 # return
 
             # 기사를 가져왔으니 변수 + 1

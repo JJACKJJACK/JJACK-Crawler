@@ -91,7 +91,7 @@ def insert_article (url, i):
                 cur.execute(sql)
 
             except Exception as err:
-                print('Main Error!' + str(err))
+                print('[Chosun]Main Error!' + str(err))
                 # return
 
 
