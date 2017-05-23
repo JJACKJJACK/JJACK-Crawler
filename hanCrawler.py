@@ -99,7 +99,7 @@ def insert_article (url, i):
             # 한겨레의 경우 최신 기사 리스트에 기자의 이름을 따로 보여주지 않고 있기 때문에
             # 기사의 원본 url으로 기사 원본을 열어 기자의 이름을 가져온다.
             # reporter = get_reporter_by_new_link(article_url)
-            reporter = ''
+            reporter = None
             # print(reporter)
 
             # 카테고리.
@@ -109,7 +109,7 @@ def insert_article (url, i):
 
             try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")' \
-                      %(title, desc, article_url, reporter,'한겨레', image_url, date, category)
+                      %(title, desc, article_url, reporter, '한겨레', image_url, date, category)
                 # print(sql)
                 cur.execute(sql)
 
@@ -140,7 +140,7 @@ def get_reporter_by_new_link (url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    reporter = ""
+    reporter = None
 
     if source is not None:
         try:
@@ -155,7 +155,7 @@ def get_reporter_by_new_link (url):
 
         except Exception as err:
             print('[Han]Reporter Error! ' + str(err))
-            return ""
+            return reporter
 
     return reporter
 

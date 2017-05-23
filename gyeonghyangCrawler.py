@@ -135,7 +135,7 @@ def get_category_by_new_link(url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    category = ""
+    category = None
 
     if source is not None:
         try:
@@ -148,7 +148,7 @@ def get_category_by_new_link(url):
 
         except Exception as err:
             print('[GH]Category Error! ' + str(err))
-            return ""
+            return category
 
     return category
 

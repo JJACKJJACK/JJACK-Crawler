@@ -120,8 +120,8 @@ def get_reporter_and_category_by_new_link (url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    reporter = ""
-    category = ""
+    reporter = None
+    category = None
 
     if source is not None:
         try:
@@ -139,7 +139,7 @@ def get_reporter_and_category_by_new_link (url):
 
         except Exception as err:
             print('Donga]Reporter Error! ' + str(err))
-            return ""
+            return reporter, category
 
     return reporter, category
 
