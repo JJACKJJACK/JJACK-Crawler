@@ -67,7 +67,7 @@ def insert_article (url, i):
             if image_dump is not None:
                 image_url = image_dump.find('img').get('src')
             else:
-                image_url = None
+                image_url = ''
             # print(image_url)
 
             # 내용.
@@ -93,7 +93,7 @@ def insert_article (url, i):
             if reporter is not None:
                 reporter = reporter.text.strip()
             else:
-                reporter = None
+                reporter = ''
             # print(reporter)
 
             # 카테고리.
@@ -135,7 +135,7 @@ def get_category_by_new_link(url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    category = None
+    category = ''
 
     if source is not None:
         try:

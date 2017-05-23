@@ -75,7 +75,7 @@ def insert_article (url, i):
             if image_dump is not None:
                 image_url = image_dump.find('img').get('src')
             else:
-                image_url = None
+                image_url = ''
             # print(image_url)
 
             # 기자, 카테고리.
@@ -120,8 +120,8 @@ def get_reporter_and_category_by_new_link (url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    reporter = None
-    category = None
+    reporter = ''
+    category = ''
 
     if source is not None:
         try:
@@ -130,7 +130,8 @@ def get_reporter_and_category_by_new_link (url):
             # 한 기사에 기자가 여럿이거나 특파원이 포함된 경우가 있다.
             # 반복을 통해 reporter 변수에 모두 추가한다.
             for reporter_dump in soup.find('span', attrs={'class': 'report'}).findAll('a'):
-                reporter = reporter + reporter_dump.text
+                if reporter_dump is not None:
+                    reporter = reporter + reporter_dump.text
 
             # 카테고리
             category_dump = soup.find('div', attrs={'class': 'location'})

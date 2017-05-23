@@ -91,7 +91,7 @@ def insert_article (url, i):
             if image_dump is not None:
                 image_url = image_dump.find('img').get('src')
             else:
-                image_url = None
+                image_url = ''
             # print(image_url)
 
             # TODO: 기자명이 출력되는 태그가 불규칙적이라 얻어오지 못했다. 추후에 수정.
@@ -99,12 +99,15 @@ def insert_article (url, i):
             # 한겨레의 경우 최신 기사 리스트에 기자의 이름을 따로 보여주지 않고 있기 때문에
             # 기사의 원본 url으로 기사 원본을 열어 기자의 이름을 가져온다.
             # reporter = get_reporter_by_new_link(article_url)
-            reporter = None
+            reporter = ''
             # print(reporter)
 
             # 카테고리.
             category_dump = article_info_dump.find('strong', attrs={'class': 'category'})
-            category = category_dump.find('a').text
+            if category_dump is not None:
+                category = category_dump.find('a').text
+            else:
+                category = ''
             # print(category)
 
             try:
@@ -140,7 +143,7 @@ def get_reporter_by_new_link (url):
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
 
-    reporter = None
+    reporter = ''
 
     if source is not None:
         try:
