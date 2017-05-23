@@ -78,14 +78,17 @@ def insert_article (url, i):
                 image_url = None
             # print(image_url)
 
-            # 기자.
-            # 동아일보의 경우 최신 기사 리스트에 기자의 이름을 따로 보여주지 않고 있기 때문에
-            # 기사의 원본 url으로 기사 원본을 열어 기자의 이름을 가져온다.
-            # reporter = get_reporter_by_new_link(article_url)
-            reporter = ''
+            # 기자, 카테고리.
+            # 동아일보의 경우 최신 기사 리스트에 기자의 이름과 카테고리를 따로 보여주지 않고 있기 때문에
+            # 기사의 원본 url으로 기사 원본을 열어 가져온다.
+            reporter, category = get_reporter_and_category_by_new_link(article_url)
+            # reporter = ''
             # print(reporter)
+            # print(category)
+
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'동아일보', image_url, date)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")'\
+                      %(title, desc, article_url, reporter,'동아일보', image_url, date, category)
                 # print(sql)
                 cur.execute(sql)
 
@@ -97,14 +100,28 @@ def insert_article (url, i):
 '''
  # AUTH: Moon 
  # DATE: 17.05.01
- # DESC: 입력받은 url을 이용하여 기사 원본을 열어 기자의 이름을 받아오는 함수.
+ # DESC: 입력받은 url을 이용하여 기사 원본을 열어 기자의 이름과 카테고리를 받아오는 함수.
  # PARAM: 1. url: 기사 원본 url
- # RETURN: 기자의 이름 또는 공백.
+ # RETURN: 1. reporter: 기자의 이름 또는 공백.
+           2. category: 카테고리 또는 공백
 '''
-def get_reporter_by_new_link (url):
-    source = urllib.request.urlopen(url)
+def get_reporter_and_category_by_new_link (url):
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
+                      ' Gecko/20100722 Firefox/3.6.8 IPMS/A640400A-14D460801A1-000000426571',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url, headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     reporter = ""
+    category = ""
 
     if source is not None:
         try:
@@ -115,17 +132,20 @@ def get_reporter_by_new_link (url):
             for reporter_dump in soup.find('span', attrs={'class': 'report'}).findAll('a'):
                 reporter = reporter + reporter_dump.text
 
-            return reporter
+            # 카테고리
+            category_dump = soup.find('div', attrs={'class': 'location'})
+            if category_dump is not None:
+                category = category_dump.find('a').text
 
         except Exception as err:
             print('Donga]Reporter Error! ' + str(err))
             return ""
 
-    return reporter
+    return reporter, category
 
 
 # Exception Log를 기록할 파일 열기.
-# f = open('./log/dongaLog', 'a')
+f = open('./log/dongaLog', 'a')
 
 # 동아일보 기사 페이지 url
 # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
@@ -133,13 +153,13 @@ def get_reporter_by_new_link (url):
 donga_url = 'http://news.donga.com/List?p=!@#&prod=news&ymd=&m=NP'
 
 # 동아일보 최신 기사 페이지의 번호는 1, 21, 41, 61, ... 과 같이 값이 한번에 20씩 증가한다.
-for i in range(1, 22, 20):
+for i in range(1, 999999999, 20):
     try:
         insert_article(donga_url, i)
     except Exception as err:
         # 만약 Exception이 발생할 경우 파일에 쓰기.
         err_message = str(err)
-        # f.write(err_message)
+        f.write(err_message)
 
 # 파일 닫기.
-# f.close()
+f.close()

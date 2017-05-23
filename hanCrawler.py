@@ -20,8 +20,8 @@ def insert_article (url, i):
 
     # 헤더 정의
     hdr = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_3_2 like Mac OS X) AppleWebKit/601.1.46 '
-                      '(KHTML, like Gecko) Version/9.0 Mobile/13F69 Safari/601.1',
+        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
+                      ' Gecko/20100722 Firefox/3.6.8 IPMS/A640400A-14D460801A1-000000426571',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
         'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
@@ -102,8 +102,14 @@ def insert_article (url, i):
             reporter = ''
             # print(reporter)
 
+            # 카테고리.
+            category_dump = article_info_dump.find('strong', attrs={'class': 'category'})
+            category = category_dump.find('a').text
+            # print(category)
+
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s")' %(title, desc, article_url, reporter,'한겨레', image_url, date)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")' \
+                      %(title, desc, article_url, reporter,'한겨레', image_url, date, category)
                 # print(sql)
                 cur.execute(sql)
 
@@ -117,10 +123,22 @@ def insert_article (url, i):
  # DATE: 17.05.01
  # DESC: 입력받은 url을 이용하여 기사 원본을 열어 기자의 이름을 받아오는 함수.
  # PARAM: 1. url: 기사 원본 url
- # RETURN: 기자의 이름 또는 공백.
+ # RETURN: 1. category: 기자의 이름 또는 공백.
 '''
 def get_reporter_by_new_link (url):
-    source = urllib.request.urlopen(url)
+    # 헤더 정의
+    hdr = {
+        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
+                      ' Gecko/20100722 Firefox/3.6.8 IPMS/A640400A-14D460801A1-000000426571',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
+        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+
+    # Request 객체 생성
+    req = urllib.request.Request(url, headers=hdr)
+
+    # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
+    source = urllib.request.urlopen(req)
 
     reporter = ""
 
@@ -152,7 +170,7 @@ han_url = 'http://www.hani.co.kr/arti/list!@#.html'
 
 # 한겨레 최신 기사 1페이지부터 n페이지까지 반복.
 # 한겨레는 50295페이지까지 존재.
-for i in range(1, 3):
+for i in range(1, 99999999):
     try:
         insert_article(han_url, i)
     except Exception as err:
