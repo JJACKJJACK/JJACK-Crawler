@@ -135,7 +135,7 @@ def get_category_by_new_link(url):
                 category = category_dump.find('a').text
 
         except Exception as err:
-            print('[GH]Category Error! ' + str(err))
+            print('[Chosun]Category Error! ' + str(err))
             return category
 
     return category
