@@ -109,7 +109,7 @@ def insert_article (url, i):
                 # return
 
             # 크롤러가 아닌척 하기.
-            # time.sleep(1)
+            time.sleep(1)
 
 
 '''
@@ -164,7 +164,7 @@ def get_category_by_new_link (url):
 sports_chosun_url = 'http://sports.chosun.com/latest/main.htm?page='
 
 # 스포츠조선 최신 기사 1페이지부터 n페이지까지 반복.
-for i in range(1, 3):
+for i in range(1, 100):
     try:
         insert_article(sports_chosun_url, i)
     except Exception as err:

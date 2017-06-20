@@ -109,11 +109,51 @@ def insert_article (url, i):
                 category = category_dump.find('a').text
             else:
                 category = ''
+
+            category_sql = 'SELECT DISTINCT * FROM category'
+            cur.execute(category_sql)
+
+            rows = cur.fetchall()
+
+            main_category_flag = True
+            sub_category_flag = True
+            category_id = -1
+            etc_id = -1
+
+            # 카테고리 1차 필터링.
+            for row in rows:
+                # 일치하는 카테고리가 있다면
+                if row[1] in category:
+                    category_id = row[0]
+                    main_category_flag = False
+
+            # 1차 필터링을 거쳤다면.
+            if main_category_flag:
+                # 카테고리 2차 필터링.
+                for row in rows:
+                    if row[2] is not None:
+                        # 일치하는 카테고리가 있다면
+                        if row[2] in category:
+                            sub_category_flag = False
+                            category = row[1]
+                            category_id = row[0]
+
+                # 2차 필터링을 거쳤다면.
+                if sub_category_flag:
+                    for row in rows:
+                        if '기타' in row[1]:
+                            etc_id = row[0]
+                    # print(category)
+                    # f.write(category)
+                    category = '기타'
+                    category_id = etc_id
+
             # print(category)
+            # print(category_id)
 
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")' \
-                      %(title, desc, article_url, reporter, '한겨레', image_url, date, category)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")' \
+                      %(title, desc, article_url, reporter, '한겨레', image_url, date, category_id)
                 # print(sql)
                 cur.execute(sql)
 
@@ -177,7 +217,7 @@ han_url = 'http://www.hani.co.kr/arti/list!@#.html'
 
 # 한겨레 최신 기사 1페이지부터 n페이지까지 반복.
 # 한겨레는 50295페이지까지 존재.
-for i in range(1, 3):
+for i in range(1, 9999999):
     try:
         insert_article(han_url, i)
     except Exception as err:
