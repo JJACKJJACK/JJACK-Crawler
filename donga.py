@@ -15,7 +15,8 @@ def insert_article (url, i):
     # 동아일보는 url 중간에 페이지 번호가 있기 때문에 replace 함수를 이용하여 페이지 번호를 적용.
     # replace를 쉽게 적용하기 위해 url 페이지 번호 입력 부분에 '!@#' 문자열을 추가해 놓은 상태.
     url = url.replace('!@#', str(i))
-    # print(url)
+
+    category_file = open('./log/dongaCategoryLog', 'a')
 
     # 헤더 정의
     hdr = {
@@ -52,7 +53,7 @@ def insert_article (url, i):
             title = title.replace('\'', '\\\'').replace('\"', '\\\"')
             # 문장 앞 뒤 공백 제거
             title = title.strip()
-            # print(title)
+            print(title)
 
             # 기사 url
             article_url = article_info_dump.get('href')
@@ -86,9 +87,51 @@ def insert_article (url, i):
             # print(reporter)
             # print(category)
 
+            category_sql = 'SELECT DISTINCT * FROM category'
+            cur.execute(category_sql)
+
+            rows = cur.fetchall()
+
+            main_category_flag = True
+            sub_category_flag = True
+            category_id = -1
+            etc_id = -1
+
+            # 카테고리 1차 필터링.
+            for row in rows:
+                # 일치하는 카테고리가 있다면
+                if row[1] in category:
+                    category_id = row[0]
+                    main_category_flag = False
+
+            # 1차 필터링을 거쳤다면.
+            if main_category_flag:
+                # 카테고리 2차 필터링.
+                for row in rows:
+                    if row[2] is not None:
+                        # 일치하는 카테고리가 있다면
+                        if row[2] in category:
+                            sub_category_flag = False
+                            category = row[1]
+                            category_id = row[0]
+
+                # 2차 필터링을 거쳤다면.
+                if sub_category_flag:
+                    for row in rows:
+                        if '기타' in row[1]:
+                            etc_id = row[0]
+                    # print(category)
+                    category_file.write(category)
+                    category_id = etc_id
+                    # category = '기타'
+
+            # print(category)
+            # print(category_id)
+
+
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")'\
-                      %(title, desc, article_url, reporter,'동아일보', image_url, date, category)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")'\
+                      %(title, desc, article_url, reporter,'동아일보', image_url, date, category_id)
                 # print(sql)
                 cur.execute(sql)
 
@@ -96,6 +139,7 @@ def insert_article (url, i):
                 print('[Donga]Main Error! ' + str(err))
                 # return
 
+    category_file.close()
 
 '''
  # AUTH: Moon 
@@ -146,7 +190,7 @@ def get_reporter_and_category_by_new_link (url):
 
 
 # Exception Log를 기록할 파일 열기.
-f = open('./log/dongaLog', 'a')
+# f = open('./log/dongaLog', 'a')
 
 # 동아일보 기사 페이지 url
 # p의 값이 페이지 번호가 된다. Ex) p=5  ->  5페이지.
@@ -160,7 +204,7 @@ for i in range(1, 999999999, 20):
     except Exception as err:
         # 만약 Exception이 발생할 경우 파일에 쓰기.
         err_message = str(err)
-        f.write(err_message)
+        # f.write(err_message)
 
 # 파일 닫기.
-f.close()
+# f.close()

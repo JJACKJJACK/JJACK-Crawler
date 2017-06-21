@@ -19,6 +19,8 @@ def insert_article (url, i):
     url = url.replace('!@#', str(i))
     # print(url)
 
+    category_file = open(',/log/hanCategoryLog', 'a')
+
     # 헤더 정의
     hdr = {
         'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
@@ -144,9 +146,9 @@ def insert_article (url, i):
                         if '기타' in row[1]:
                             etc_id = row[0]
                     # print(category)
-                    # f.write(category)
-                    category = '기타'
+                    category_file.write(category)
                     category_id = etc_id
+                    # category = '기타'
 
             # print(category)
             # print(category_id)
@@ -163,6 +165,8 @@ def insert_article (url, i):
 
             # 크롤러가 아닌척 하기.
             time.sleep(1)
+
+    category_file.close()
 
 
 '''
@@ -217,7 +221,7 @@ han_url = 'http://www.hani.co.kr/arti/list!@#.html'
 
 # 한겨레 최신 기사 1페이지부터 n페이지까지 반복.
 # 한겨레는 50295페이지까지 존재.
-for i in range(1, 9999999):
+for i in range(1, 99999999):
     try:
         insert_article(han_url, i)
     except Exception as err:
