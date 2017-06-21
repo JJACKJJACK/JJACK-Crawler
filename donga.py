@@ -53,7 +53,7 @@ def insert_article (url, i):
             title = title.replace('\'', '\\\'').replace('\"', '\\\"')
             # 문장 앞 뒤 공백 제거
             title = title.strip()
-            print(title)
+            # print(title)
 
             # 기사 url
             article_url = article_info_dump.get('href')
@@ -99,10 +99,12 @@ def insert_article (url, i):
 
             # 카테고리 1차 필터링.
             for row in rows:
-                # 일치하는 카테고리가 있다면
-                if row[1] in category:
-                    category_id = row[0]
-                    main_category_flag = False
+                # 메인 카테고리를 기준으로.
+                if row[2] is None:
+                    # 일치하는 카테고리가 있다면
+                    if category in row[1]:
+                        category_id = row[0]
+                        main_category_flag = False
 
             # 1차 필터링을 거쳤다면.
             if main_category_flag:
@@ -110,7 +112,7 @@ def insert_article (url, i):
                 for row in rows:
                     if row[2] is not None:
                         # 일치하는 카테고리가 있다면
-                        if row[2] in category:
+                        if category in row[2]:
                             sub_category_flag = False
                             category = row[1]
                             category_id = row[0]
@@ -120,14 +122,14 @@ def insert_article (url, i):
                     for row in rows:
                         if '기타' in row[1]:
                             etc_id = row[0]
-                    # print(category)
+                    print('기타:' + category)
+                    category = category + '\n'
                     category_file.write(category)
                     category_id = etc_id
                     # category = '기타'
 
-            # print(category)
-            # print(category_id)
-
+            print(category)
+            print(category_id)
 
             try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")'\
