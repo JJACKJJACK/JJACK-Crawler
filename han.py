@@ -127,7 +127,7 @@ def insert_article (url, i):
                 # 메인 카테고리를 기준으로.
                 if row[2] is None:
                     # 일치하는 카테고리가 있다면.
-                    if category in row[1]:
+                    if category in row[1] or row[1] in category:
                         category_id = row[0]
                         main_category_flag = False
 
@@ -137,7 +137,7 @@ def insert_article (url, i):
                 for row in rows:
                     if row[2] is not None:
                         # 일치하는 카테고리가 있다면.
-                        if category in row[2]:
+                        if category in row[2] or row[2] in category:
                             sub_category_flag = False
                             category = row[1]
                             category_id = row[0]
