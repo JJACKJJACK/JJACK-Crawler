@@ -14,6 +14,8 @@ import sys
 def insert_article (url, i):
     # print(url + str(i))
 
+    category_file = open('./log/gyeonghyangCategoryLog', 'a')
+
     # 헤더 정의
     hdr = {
         'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
@@ -27,7 +29,6 @@ def insert_article (url, i):
 
     # Request 객체를 이용하여 HTTP 응답 객체를 얻어옴.
     source = urllib.request.urlopen(req)
-
 
     # 정상적으로 객체를 얻어왔는지 확인.
     if source is not None:
@@ -100,9 +101,54 @@ def insert_article (url, i):
             category = get_category_by_new_link(article_url)
             # print(category)
 
+            category_sql = 'SELECT DISTINCT * FROM category'
+            cur.execute(category_sql)
+
+            rows = cur.fetchall()
+
+            main_category_flag = True
+            sub_category_flag = True
+            category_id = -1
+            etc_id = -1
+
+            # 카테고리 1차 필터링.
+            for row in rows:
+                # 메인 카테고리를 기준으로.
+                if row[2] is None:
+                    # 일치하는 카테고리가 있다면.
+                    if category in row[1]:
+                        category_id = row[0]
+                        main_category_flag = False
+
+            # 1차 필터링을 거쳤다면.
+            if main_category_flag:
+                # 카테고리 2차 필터링.
+                for row in rows:
+                    if row[2] is not None:
+                        # 일치하는 카테고리가 있다면.
+                        if category in row[2]:
+                            sub_category_flag = False
+                            category = row[1]
+                            category_id = row[0]
+
+                # 2차 필터링을 거쳤다면.
+                if sub_category_flag:
+                    for row in rows:
+                        if '기타' in row[1]:
+                            etc_id = row[0]
+                    # print('기타: ' + category)
+                    # category = category + '\n'
+                    category_file.write(category)
+                    category_id = etc_id
+                    # category = '기타'
+
+            # print(category)
+            # print(category_id)
+            # print()
+
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")'\
-                      %(title, desc, article_url, reporter,'경향신문', image_url, date, category)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")'\
+                      %(title, desc, article_url, reporter, '경향신문', image_url, date, category_id)
                 # print(sql)
                 cur.execute(sql)
 
@@ -112,6 +158,8 @@ def insert_article (url, i):
 
             # 기사를 가져왔으니 변수 + 1
             count = count + 1
+
+    category_file.close()
 
 '''
  # AUTH: Moon 
@@ -154,7 +202,7 @@ def get_category_by_new_link(url):
 
 
 # Exception Log를 기록할 파일 열기.
-f = open('./log/gyeonghyangLog', 'a')
+# f = open('./log/gyeonghyangLog', 'a')
 
 # 경향신문 기사 페이지 url
 # 쿼리에서 page의 값이 페이지 번호가 된다. Ex) page=5  ->  5페이지.
@@ -167,7 +215,7 @@ for i in range(1, 99999999):
     except Exception as err:
         # 만약 Exception이 발생할 경우 파일에 쓰기.
         err_message = str(err)
-        f.write(err_message)
+        # f.write(err_message)
 
 # 파일 닫기.
-f.close()
+# f.close()
