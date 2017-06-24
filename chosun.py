@@ -21,6 +21,8 @@ def insert_article (url, i):
         'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
         'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
 
+    category_file = open('./log/chosunCategoryLog', 'a')
+
     # Request 객체 생성
     req = urllib.request.Request(url + str(i), headers=hdr)
 
@@ -87,17 +89,64 @@ def insert_article (url, i):
 
             # 카테고리.
             category = get_category_by_new_link(article_url)
+
+            category_sql = 'SELECT DISTINCT * FROM category'
+            cur.execute(category_sql)
+
+            rows = cur.fetchall()
+
+            main_category_flag = True
+            sub_category_flag = True
+            category_id = -1
+            etc_id = -1
+
+            # 카테고리 1차 필터링.
+            for row in rows:
+                # 메인 카테고리를 기준으로.
+                if row[2] is None:
+                    # 일치하는 카테고리가 있다면.
+                    if category in row[1] or row[1] in category:
+                        category_id = row[0]
+                        main_category_flag = False
+
+            # 1차 필터링을 거쳤다면.
+            if main_category_flag:
+                # 카테고리 2차 필터링.
+                for row in rows:
+                    if row[2] is not None:
+                        # 일치하는 카테고리가 있다면.
+                        if category in row[2] or row[2] in category:
+                            sub_category_flag = False
+                            category = row[1]
+                            category_id = row[0]
+
+                # 2차 필터링을 거쳤다면.
+                if sub_category_flag:
+                    for row in rows:
+                        if '기타' in row[1]:
+                            etc_id = row[0]
+                    # print('기타: ' + category)
+                    category = category + '\n'
+                    category_file.write(category)
+                    category_id = etc_id
+                    # category = '기타'
+
             # print(category)
+            # print(category_id)
+            # print()
 
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")' \
-                      %(title, desc, article_url, reporter,'조선일보', image_url, date, category)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")' \
+                      %(title, desc, article_url, reporter,'조선일보', image_url, date, category_id)
                 # print(sql)
-                # cur.execute(sql)
+                cur.execute(sql)
 
             except Exception as err:
                 print('[Chosun]Main Error!' + str(err))
                 # return
+
+    category_file.close()
+
 
 '''
  # AUTH: Moon 
@@ -126,13 +175,21 @@ def get_category_by_new_link(url):
     if source is not None:
         try:
             soup = BeautifulSoup(source, 'lxml')
-            print(soup)
-
-            # 카테고리
-            category_dump = soup.find('span', attrs={'class': 'csh_art_cat'})
-            # print(category_dump)
-            if category_dump is not None:
-                category = category_dump.find('a').text
+            # print(soup)
+            for link in soup.findAll('script'):
+                str_link = str(link)
+                index = str_link.find('C1_rp')
+                if index is not -1:
+                    length = 0
+                    for i in range(5, 100):
+                        if str_link[index+i:index+i+1] is not str('\r'):
+                            category = category + str_link[index+i:index+i+1]
+                        else:
+                            break
+                    category = category.replace(';', '')
+                    category = category.replace('=', '')
+                    category = category.replace('"', '')
+                    category = category.replace(' ', '')
 
         except Exception as err:
             print('[Chosun]Category Error! ' + str(err))
@@ -149,7 +206,7 @@ def get_category_by_new_link(url):
 chosun_url = 'http://news.chosun.com/svc/list_in/list.html?source=1&pn='
 
 # 톄스트를 위해 최신 기사 1페이지부터 6페이지까지 수집.
-for i in range(1, 3):
+for i in range(1, 99999999):
     try:
         insert_article(chosun_url, i)
     except Exception as err:
