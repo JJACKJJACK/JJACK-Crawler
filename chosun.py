@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
+import time
 
 '''
  # AUTH: Moon 
@@ -13,13 +14,15 @@ import sys
 '''
 def insert_article (url, i):
     # print(url + str(i))
+
     # 헤더 정의
     hdr = {
-        'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; ko; rv:1.9.2.8)'
-                      ' Gecko/20100722 Firefox/3.6.8 IPMS/A640400A-14D460801A1-000000426571',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
-        'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36'
+                      ' (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'none',
+        'Accept-Language': 'ko-KR,ko;q=0.8,en-US;q=0.6,en;q=0.4'
+    }
 
     category_file = open('./log/chosunCategoryLog', 'a')
 
@@ -41,7 +44,6 @@ def insert_article (url, i):
         soup = BeautifulSoup(source, 'lxml')
 
         for link in soup.findAll('dl', attrs={'class': 'list_item'}):
-
             # 제목, 기사 url 덤프.
             title_and_url_dump = link.find('dt')
             # 제목.
@@ -138,12 +140,15 @@ def insert_article (url, i):
             try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")' \
                       %(title, desc, article_url, reporter,'조선일보', image_url, date, category_id)
-                # print(sql)
-                cur.execute(sql)
+                print(sql)
+                # cur.execute(sql)
 
             except Exception as err:
                 print('[Chosun]Main Error!' + str(err))
                 # return
+
+            # 크롤러 아닌척 하기.
+            time.sleep(1)
 
     category_file.close()
 
@@ -175,17 +180,16 @@ def get_category_by_new_link(url):
     if source is not None:
         try:
             soup = BeautifulSoup(source, 'lxml')
-            # print(soup)
             for link in soup.findAll('script'):
                 str_link = str(link)
                 index = str_link.find('C1_rp')
                 if index is not -1:
-                    length = 0
                     for i in range(5, 100):
                         if str_link[index+i:index+i+1] is not str('\r'):
                             category = category + str_link[index+i:index+i+1]
                         else:
                             break
+
                     category = category.replace(';', '')
                     category = category.replace('=', '')
                     category = category.replace('"', '')
@@ -212,6 +216,7 @@ for i in range(1, 99999999):
     except Exception as err:
         # 만약 Exception이 발생할 경우 파일에 쓰기.
         err_message = str(err)
+        print(err_message)
         # f.write(err_message)
 
 # 파일 닫기.
