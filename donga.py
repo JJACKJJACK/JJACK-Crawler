@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
+import time
 
 '''
  # AUTH: Moon 
@@ -140,6 +141,9 @@ def insert_article (url, i):
             except Exception as err:
                 print('[Donga]Main Error! ' + str(err))
                 # return
+
+            # 크롤러가 아닌척 하기.
+            time.sleep(1)
 
     category_file.close()
 

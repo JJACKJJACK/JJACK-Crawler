@@ -140,8 +140,8 @@ def insert_article (url, i):
             try:
                 sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")' \
                       %(title, desc, article_url, reporter,'조선일보', image_url, date, category_id)
-                print(sql)
-                # cur.execute(sql)
+                # print(sql)
+                cur.execute(sql)
 
             except Exception as err:
                 print('[Chosun]Main Error!' + str(err))

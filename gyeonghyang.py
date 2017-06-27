@@ -3,6 +3,7 @@ import urllib.request
 import urllib.parse
 import pymysql
 import sys
+import time
 
 '''
  # AUTH: Moon 
@@ -158,6 +159,9 @@ def insert_article (url, i):
 
             # 기사를 가져왔으니 변수 + 1
             count = count + 1
+
+            # 크롤러가 아닌척 하기.
+            time.sleep(1)
 
     category_file.close()
 
