@@ -22,6 +22,8 @@ def insert_article (url, i):
         'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.3', 'Accept-Encoding': 'none',
         'Accept-Language': 'en-US,en;q=0.8', 'Connection': 'keep-alive'}
 
+    category_file = open('./log/sportsChosunCategoryLog', 'a')
+
     # Request 객체 생성
     req = urllib.request.Request(url + str(i), headers=hdr)
 
@@ -98,9 +100,53 @@ def insert_article (url, i):
             category = get_category_by_new_link(article_url)
             # print(category)
 
+            category_sql = 'SELECT DISTINCT * FROM category'
+            cur.execute(category_sql)
+
+            rows = cur.fetchall()
+
+            main_category_flag = True
+            sub_category_flag = True
+            category_id = -1
+            etc_id = -1
+
+            # 카테고리 1차 필터링.
+            for row in rows:
+                # 메인 카테고리를 기준으로.
+                if row[2] is None:
+                    # 일치하는 카테고리가 있다면.
+                    if category in row[1] or row[1] in category:
+                        category_id = row[0]
+                        main_category_flag = False
+
+            # 1차 필터링을 거쳤다면.
+            if main_category_flag:
+                # 카테고리 2차 필터링.
+                for row in rows:
+                    if row[2] is not None:
+                        # 일치하는 카테고리가 있다면.
+                        if category in row[2] or row[2] in category:
+                            sub_category_flag = False
+                            category = row[1]
+                            category_id = row[0]
+
+                # 2차 필터링을 거쳤다면.
+                if sub_category_flag:
+                    for row in rows:
+                        if '기타' in row[1]:
+                            etc_id = row[0]
+                    # print('기타: ' + category)
+                    category = category + '\n'
+                    category_file.write(category)
+                    category_id = etc_id
+                    # category = '기타'
+
+            # print(category)
+            # print(category_id)
+
             try:
-                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%s")' \
-                      %(title, desc, article_url, reporter, '스포츠조선', image_url, date, category)
+                sql = 'INSERT INTO article VALUES(null, "%s", "%s", "%s", "%s", "%s", "%s", 0, "%s", "%d")' \
+                      %(title, desc, article_url, reporter, '스포츠조선', image_url, date, category_id)
                 # print(sql)
                 cur.execute(sql)
 
@@ -110,6 +156,8 @@ def insert_article (url, i):
 
             # 크롤러가 아닌척 하기.
             time.sleep(1)
+
+    category_file.close()
 
 
 '''
@@ -164,7 +212,7 @@ def get_category_by_new_link (url):
 sports_chosun_url = 'http://sports.chosun.com/latest/main.htm?page='
 
 # 스포츠조선 최신 기사 1페이지부터 n페이지까지 반복.
-for i in range(1, 100):
+for i in range(1, 999999999):
     try:
         insert_article(sports_chosun_url, i)
     except Exception as err:
