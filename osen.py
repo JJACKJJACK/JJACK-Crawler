@@ -129,6 +129,8 @@ def insert_article (url, i, d):
                           %(title, desc, article_url, reporter, '오센', image_url, date, category_id)
                     # print(sql)
                     cur.execute(sql)
+                    sql = 'INSERT INTO article_index VALUES(null, "%s")' %(title)
+                    cur.execute(sql)
 
                 except Exception as err:
                     print('[osen]Main Error! ' + str(err))

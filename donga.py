@@ -137,6 +137,8 @@ def insert_article (url, i):
                       %(title, desc, article_url, reporter,'동아일보', image_url, date, category_id)
                 # print(sql)
                 cur.execute(sql)
+                sql = 'INSERT INTO article_index VALUES(null, "%s")' %(title)
+                cur.execute(sql)
 
             except Exception as err:
                 print('[Donga]Main Error! ' + str(err))
